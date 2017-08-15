@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Deugging local setup
+exit 0
+
+function vpn_off(){
+  if pp_dev=$(ifconfig | grep ppp | awk '{print $1}' | tail -1) ; then
+    echo "$pp_dev"
+    route del default dev "$pp_dev"
+  fi
+}
+
+function handle_event(){
+case $1 in
+    hibernate)
+            echo "Going to suspend to disk!"
+	    vpn_off
+            ;;
+    suspend)
+            echo "Suspending to RAM."
+	    vpn_off
+            ;;
+    thaw)
+            echo "Suspend to disk is now over!"
+	    vpn_off
+            ;;
+    resume)
+            echo "We are now resuming."
+	    vpn_off
+            ;;
+    *)
+            echo "Somebody is calling me totally wrong."
+            ;;
+esac
+}
+
+# For different versions of Ubuntu
+# * This must be placed differently
+# * The arguments are different
+case "$1" in
+    pre|post)
+        handle_event "$2"
+        ;;
+    *)
+        handle_event "$1"
+        ;;
+esac
+
+# Without an exit of 0 it won't go to sleep
+exit 0
